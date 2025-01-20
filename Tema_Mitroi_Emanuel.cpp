@@ -1,6 +1,7 @@
 #pragma warning(disable:4996)
 #include<iostream>
 #include<string>
+#include<fstream>
 
 using namespace std;
 
@@ -128,6 +129,93 @@ public:
 		}
 	}
 
+	//OPERATORUL =
+	CutieViteze& operator=(const CutieViteze& c) { //este format din destructor si constructorul de copiere
+		if (this != &c) { //evitarea autoasignarii
+			if (this->capacitateUlei != NULL) {
+				delete[]this->capacitateUlei;
+			}
+			if (this->modelCutie != NULL) {
+				delete[]this->modelCutie;
+			}
+
+			this->producator = c.producator;
+			this->numarModele = c.numarModele;
+			this->capacitateUlei = new float[c.numarModele];
+			this->modelCutie = new string[c.numarModele];
+			for (int i = 0; i < c.numarModele; i++) {
+				this->capacitateUlei[i] = c.capacitateUlei[i];
+				this->modelCutie[i] = c.modelCutie[i];
+			}
+			this->esteManuala = c.esteManuala;
+		}
+
+		return*this; //oarecum optiunea de salvare
+
+	}
+
+	//OPERATORUL<< (de afisare pe consola)
+	friend ostream& operator<<(ostream& out, const CutieViteze& c) {
+		out << "Numarul de rapoarte: " << c.nrRapoarte << endl;
+		out << "Denumire producator: " << c.producator << endl;
+		out << "Numarul de modele de cutii de la producatorul " << c.producator << ": " << c.numarModele << endl;
+		for (int i = 0; i < c.numarModele; i++) {
+			out << "Modelul cutiei: " << c.modelCutie[i] << endl;
+			out << "Capacitatea de ulei: " << c.capacitateUlei[i] << endl;
+		}
+		out << "Este manuala? (0-nu;1-da): " << c.esteManuala << endl;
+		out << "Tip ambreiaj: " << c.tipAmbreiaj << endl;
+		return out;
+	}
+
+	//OPERATORUL[] DE INDEXARE
+	string operator[](int pozitieCautata) {
+		if (pozitieCautata >= 0 && pozitieCautata < this->numarModele) {
+			return this->modelCutie[pozitieCautata];
+		}
+		else {
+			return "Pozitia este introdusa gresit!";
+		}
+		
+	}
+
+	//FISERE TEXT
+	//SCRIEREA IN FISERE TEXT - fara atribute constante
+	friend ofstream& operator<<(ofstream& file, const CutieViteze& c) {
+		file << c.capacitateUlei << endl;
+		file << c.producator << endl;
+		file << c.numarModele << endl;
+		for (int i = 0; i < c.numarModele; i++) {
+			file << c.capacitateUlei[i] << endl;
+			file << c.modelCutie[i] << endl;
+		}
+		file << c.esteManuala << endl;
+		file << c.tipAmbreiaj << endl;
+		return file;
+	}
+
+	//CITIREA DIN FISERE TEXT - fara atribute constante
+	friend ifstream& operator>>(ifstream& file, CutieViteze& c) {
+		//DEZALOCAM MEMORIA -> destructorul
+		if (c.capacitateUlei != NULL) {
+			delete[]c.capacitateUlei;
+		}
+		if (c.modelCutie != NULL) {
+			delete[]c.modelCutie;
+		}
+		file >> c.producator;
+		file >> c.numarModele;
+		c.capacitateUlei = new float[c.numarModele];
+		c.modelCutie = new string[c.numarModele];
+		for (int i = 0; i < c.numarModele; i++) {
+			file >> c.capacitateUlei[i];
+			file >> c.modelCutie[i];
+		}
+		file >> c.esteManuala;
+		file >> c.tipAmbreiaj;
+		return file;
+	}
+	
 	void setEsteManuala(bool esteManualaNou) {
 		this->esteManuala = esteManualaNou;
 	}
@@ -256,6 +344,82 @@ public:
 		Motor::esteHybrid = hybrid;
 	}
 
+	//OPERATOR=
+	Motor& operator=(const Motor& m) {
+		if (this != &m) {
+			if (this->producator != NULL) {
+				delete[]this->producator;
+			}
+			this->numarPistoane = m.numarPistoane;
+			this->putereCP = m.putereCP;
+			this->capacitate = m.capacitate;
+			this->producator = new char[strlen(m.producator) + 1];
+			strcpy(this->producator, m.producator);
+			this->combustibil = m.combustibil;
+		}
+		return *this;
+
+	}
+
+	//OPERATOR <<
+	friend ostream& operator<<(ostream& out, const Motor& m) {
+		out << "Anul productiei: " << m.anulProductiei << endl;
+		out << "Numarul de pistoane: " << m.numarPistoane << endl;
+		out << "Putere (cp): " << m.putereCP << endl;
+		out << "Este hybrid? (1-da/0-nu):" << m.esteHybrid << endl;
+		out << "Capacitate: " << m.capacitate << " litri." << endl;
+		out << "Producator: " << m.producator << endl;
+		out << "Combustibil: " << m.combustibil << endl;
+		return out;
+	}
+
+	//OPERATORUL<= pentru compararea cailor putere
+	bool operator<=(const Motor& m) {
+		if (this->putereCP <= m.putereCP) {
+			return 1;
+		}
+		else {
+			return 0;
+		}
+	}
+
+	//OPERATORUL DE CAST LA FLOAT transformam CP in KWh
+	operator float() {
+		float putereKW;
+		putereKW = 0.745 * this->putereCP;
+		return putereKW;
+	}
+
+	//FISIERE TEXT
+	//SCRIEREA
+	friend ofstream& operator<<(ofstream& file, const Motor& m) {
+		file << m.numarPistoane << endl;
+		file << m.putereCP << endl;
+		file << m.esteHybrid << endl;
+		file << m.capacitate << endl;
+		file << m.producator << endl;
+		file << m.combustibil << endl;
+		
+		return file;
+	}
+
+	//CITIREA
+	friend ifstream& operator>>(ifstream& file, Motor& m) {
+		file >> m.numarPistoane;
+		file >> m.putereCP;
+		file >> m.esteHybrid;
+		file >> m.capacitate;
+		
+		char aux[100];
+		file >> aux;
+		m.producator = new char[strlen(aux) + 1];
+		strcpy(m.producator, aux);
+
+		file >> m.combustibil;
+		
+		return file;
+	}
+
 	//FUNCTII GLOBALE DE TIP FRIEND (IN AFARA CLASEI)
 	friend float kilowati(int putereCP); //transforma puterea motorului din cai putere in kilowati
 	friend float puterePerPiston(int putereCP, int numarPistoane); //afla puterea motorului per piston
@@ -274,16 +438,6 @@ float puterePerPiston(int putereCP, int numarPistoane) {
 		return puterePiston;
 	}
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -368,12 +522,6 @@ public:
 	}
 
 	//SETTERI
-	//int numarProducatori;
-	//float* dimensiunePlacuta;
-	//string* producator;
-	//static bool areTambur;//0-NU / 1-DA
-	//int temperaturaOptimaFranare;
-	//const string materialPlacuta;
 
 	void setNumarProducatori(int numarProducatori, float* dimensiunePlacuta, string* producator) {
 		if (numarProducatori > 0) {
@@ -403,8 +551,46 @@ public:
 		}
 	}
 
-	//FUNCTII GLOBALE
+	//OPERATOR=
+	SistemFranare& operator=(const SistemFranare& s) {
+		if (this != &s) {
+			if (this->dimensiunePlacuta != NULL) {
+				delete[]this->dimensiunePlacuta;
+			}
+			if (this->producator != NULL) {
+				delete[]this->producator;
+			}
+			this->numarProducatori = s.numarProducatori;
+			this->dimensiunePlacuta = new float[s.numarProducatori];
+			this->producator = new string[s.numarProducatori];
+			for (int i = 0; i < s.numarProducatori; i++) {
+				this->dimensiunePlacuta[i] = s.dimensiunePlacuta[i];
+				this->producator[i] = s.producator[i];
+			}
+			this->temperaturaOptimaFranare = s.temperaturaOptimaFranare;
+		}
+		return *this;
+	}
 	
+	//OPERATOR<<
+	friend ostream& operator<<(ostream& out, const SistemFranare& s) {
+		//int numarProducatori;
+		//float* dimensiunePlacuta;
+		//string* producator;
+		//static bool areTambur;//0-NU / 1-DA
+		//int temperaturaOptimaFranare;
+		//const string materialPlacuta;
+		out << "Numarul de producatori pentru sistemul de franare: " << s.numarProducatori << endl;
+		for (int i = 0; i < s.numarProducatori; i++) {
+			out << "Dimensiunea placutei de la producatorul " << s.producator[i] << " este de " << s.dimensiunePlacuta[i] << " cm." << endl;
+		}
+		out << "Are tambur? (1-da/0-nu): " << s.areTambur << endl;
+		out << "Temperatura optima de franare este: " << s.temperaturaOptimaFranare << " grade celsius." << endl;
+		out << "Material placute: " << s.materialPlacuta << endl;
+		return out;
+	}
+
+	//FUNCTII GLOBALE
 	friend string numarPlacute(bool areTambur);
 	friend string temperaturaOptima(int temperaturaOptimaFranare);//punem o conditite pentru a identifica tipul de placuta in functie de temperatura
 };
@@ -496,11 +682,20 @@ void main() {
 	}
 	cout << endl << endl;
 
+	cout << "========================= OPERATORUL= si OPERATORUL<< ===========================" << endl << endl;
+	c1 = c3;
+	cout << "Obiectul macheta: " << endl<< c3  << endl;
+	cout << "Obiectul modificat: " << endl << c1 << endl<< endl;
+
+	cout << "========================= OPERATORUL[] de indexare ===========================" << endl << endl;
+	cout << "Modelul de cutie de pe pozitia 1 este: " << c3[1] << endl << endl;
+	cout << "Modelul de cutie de pe pozitia 100 este: " << c3[100] << endl << endl;
+
 	c3.setProducator("ZF");
 	c3.setNumarModele(2, new float[2] {3.8, 4.2}, new string[2]{ "6HP","8HP" });
 	c3.setEsteManuala(0);
 
-	cout << "Obiectul c3 dupa apelarea setterilor: " << endl << endl;
+	cout << "Obiectul c3 dupa apelarea setterilor: " << endl;
 	cout << "Producator: " << c3.getProducator() << endl;
 	cout << "Numar modele cutii de viteze disponibile de la producatorul " << c3.getProducator() << ": " << c3.getNumarModele() << endl;
 	cout << "Cutia este (0-manuala,1-automata): " << c3.getEsteManuala() << endl;
@@ -512,15 +707,25 @@ void main() {
 	}
 	cout << endl << endl;
 
+	cout << "=============================== FISERE TEXT ================================" << endl << endl;
+	//ios::in -> se foloseste cand vrem sa deschidem un fisier pentru citirea din fisier
+	//ios::out -> se foloseste cand vrem sa deschidem un fisier pentru scrierea in fisier
+	//ios::binary -> se foloseste pentru fisierele binare (se foloseste in combinatie cu unul din modurile ios::in / ios::out)
+	//ios::binary ios::in -> citirea din fisiere binare
+	//ios::binary ios::out -> scrierea in fisiere binare
+
+	//SCRIEREA
+	ofstream f1("CutieViteze.txt", ios::out);
+	f1 << c3;
+	f1.close();
+	cout << c3 << endl << endl;
+	//CITIREA
+	ifstream f2("CutieViteze.txt", ios::in);
+	f2 >> c3;
+	f2.close();
+	
 	cout << "<<<<<<<<<<<<<<<<<<<<<<<CLASA MOTOR>>>>>>>>>>>>>>>>>>>>>>>>" << endl << endl;
 	Motor m1;
-	/*const int anulProductiei;
-	int numarPistoane;
-	int putereCP;
-	static bool esteHybrid;
-	float capacitate;
-	char* producator;
-	string combustibil;*/
 	cout << "Producatorul: " << m1.getProducator() << endl;
 	cout << "Anul productiei motorului: " << m1.getAnulProductiei() << endl;
 	cout << "Capacitatea: " << m1.getCapacitate() << endl;
@@ -561,6 +766,22 @@ void main() {
 	cout << "Hybrid (0-nu,1-da): " << m4.getEsteHybrid() << endl;
 	cout << endl << endl;
 
+	cout << "========================= OPERATORUL= si OPERATORUL<< ===========================" << endl << endl;
+	m1 = m3;
+	cout << "Obiectul macheta: " << endl << m3 << endl;
+	cout << "Obiectul modificat: " << endl << m1 << endl << endl;
+
+	m2.setPutere(180);
+
+	cout << "========================= OPERATORUL<=   ===========================" << endl << endl;
+	cout << "Caii putere pentru m2 sunt: " << m2.getPutere() << endl;
+	cout << "Caii putere pentru m3 sunt: " << m3.getPutere() << endl;
+	cout << "Nr de cai putere ai m2 sunt <= decat nr de cai putere ai m3? (1-da/0-nu): " << (m2 <= m3) << endl << endl;
+
+	cout << "========================= OPERATORUL de cast la float  ===========================" << endl << endl;
+	cout << "Puterea in CP: " << m3.getPutere() << " cp." << endl;
+	cout << "Puterea in KWh: " << float(m3) << " KWh." << endl << endl;
+
 	cout << "========FUNCTII GLOBALE=======" << endl;
 	int putere = m3.getPutere();
 	float putereKW = kilowati(putere);
@@ -589,6 +810,16 @@ void main() {
 	cout << "Hybrid (0-nu,1-da): " << m3.getEsteHybrid() << endl;
 	cout << endl << endl;
 
+	cout << "=============================== FISERE TEXT ================================" << endl << endl;
+	ofstream f3("Motor.txt", ios::out);
+	f3 << m3;
+	f3.close();
+
+	ifstream f4("Motor.txt", ios::in);
+	f4 >> m3;
+	f4.close();
+
+	cout << m3 << endl << endl;
 
 	cout << "<<<<<<<<<<<<<<<<<<<<<<<CLASA SISTEM FRANARE>>>>>>>>>>>>>>>>>>>>>>>>" << endl << endl;
 	//int numarProducatori;
@@ -654,6 +885,11 @@ void main() {
 	cout << "Au tambur? 0-NU,1-DA: " << s4.getAreTambur() << endl;
 	cout << "Temperatura optima de franare pentru placutele fabricate din " << s4.getMaterialPlacuta() << " este: " << s4.getTemperaturaOptimaFranare() << " grade celsius" << endl;
 	cout << endl << endl;
+
+	cout << "========================= OPERATORUL= si OPERATORUL<< ===========================" << endl << endl;
+	s1 = s3;
+	cout << "Obiectul macheta: " << endl << s3 << endl;
+	cout << "Obiectul modificat: " << endl << s1 << endl << endl;
 
 	s3.setAreTambur(1);
 	s3.setTemperaturaOptimaFranare(285);
